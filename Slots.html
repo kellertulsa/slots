@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Helen’s Jackpot</title>
+<title>The Golden Aviator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Helen’s Jackpot">
+<meta name="apple-mobile-web-app-title" content="The Golden Aviator">
 <meta name="theme-color" content="#0f3b3a">
-<link rel="apple-touch-icon" id="touchicon" href="">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/golden-aviator-180.png">
+<link rel="manifest" href="./manifest.webmanifest">
 <style>
 :root{
   --cab:#0f3b3a; --cab-deep:#0a2827; --brass:#c9a24b; --brass-lt:#e8cf8c;
@@ -181,7 +182,10 @@ h1{font-size:calc(var(--u)*26)}
 .pill.off{background:transparent;border:2px solid var(--brass);color:var(--cream);font-weight:400}
 .card.soon{opacity:.62}
 .card.soon .mini span{background:#cfc6b0;color:#8a826c}
-.nav{position:absolute;top:calc(50% - var(--u)*10);transform:translateY(-50%);z-index:2;appearance:none;width:calc(var(--u)*48);height:calc(var(--u)*48);border-radius:50%;border:2px solid var(--brass);background:var(--cab-deep);color:var(--brass-lt);font:inherit;font-size:calc(var(--u)*30);line-height:1;padding:0 0 calc(var(--u)*4)}
+.nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;display:flex;align-items:center;justify-content:center;appearance:none;width:calc(var(--u)*48);height:calc(var(--u)*48);padding:0;border-radius:50%;border:2px solid var(--brass);background:var(--cab-deep);color:var(--brass-lt);font:inherit}
+.nav span{display:block;width:calc(var(--u)*14);height:calc(var(--u)*24);background:currentColor}
+.nav.prev span{clip-path:polygon(100% 0,62% 0,0 50%,62% 100%,100% 100%,38% 50%)}
+.nav.next span{clip-path:polygon(0 0,38% 0,100% 50%,38% 100%,0 100%,62% 50%)}
 .nav.prev{left:calc(var(--u)*4)}
 .nav.next{right:calc(var(--u)*4)}
 .dots{display:flex;justify-content:center;gap:calc(var(--u)*10)}
@@ -209,20 +213,32 @@ body.space .spin-btn:active{box-shadow:0 1px 0 #a02a66}
 body.space .splash{background:radial-gradient(circle,#3a3680,var(--cab-deep) 80%)}
 body.space .bigwin{background:radial-gradient(circle at 50% 45%,#3a3680 0,rgba(10,9,34,.98) 70%)}
 body.space .bw-btn{box-shadow:0 5px 0 #4d7fa3}
+body.sports{--cab:#174a32;--cab-deep:#0b281c;--brass:#d6a542;--brass-lt:#f5dc8a;--cream:#f2f1e8;--red:#e65c3c;--win:#8be28b}
+body.sports .spin-btn{box-shadow:0 6px 0 #963d2a}
+body.sports .spin-btn:active{box-shadow:0 1px 0 #963d2a}
+body.sports .splash{background:radial-gradient(circle,#28734a,var(--cab-deep) 80%)}
+body.sports .bigwin{background:radial-gradient(circle at 50% 45%,#28734a 0,rgba(11,40,28,.98) 70%)}
+body.sports .bw-btn{box-shadow:0 5px 0 #98732e}
+body.greek,.card.greek{--cab:#48234f;--cab-deep:#211329;--brass:#c4934b;--brass-lt:#f2d89a;--cream:#f4eaf3;--red:#bd4563;--win:#a4df9b}
+body.greek .spin-btn{box-shadow:0 6px 0 #792d49}
+body.greek .spin-btn:active{box-shadow:0 1px 0 #792d49}
+body.greek .splash{background:radial-gradient(circle,#713c72,var(--cab-deep) 80%)}
+body.greek .bigwin{background:radial-gradient(circle at 50% 45%,#713c72 0,rgba(33,19,41,.98) 70%)}
+body.greek .bw-btn{box-shadow:0 5px 0 #89652f}
 </style>
 </head>
 <body>
 <main class="app">
   <header>
-    <div class="hl"><button class="back" id="back" hidden aria-label="Back to the casino">‹ Back</button><h1 id="ttl">Casino</h1></div>
+    <div class="hl"><button class="back" id="back" hidden aria-label="Back to the casino">‹ Back</button><h1 id="ttl">The Golden Aviator</h1></div>
     <div class="credits"><b id="credits">$100</b><button class="get" id="getbtn" aria-label="Add money">+</button></div>
   </header>
 
   <section class="home" id="home" aria-label="Slot machines">
     <div class="viewer">
-      <button class="nav prev" id="prev" aria-label="Previous machine">‹</button>
+      <button class="nav prev" id="prev" aria-label="Previous machine"><span aria-hidden="true"></span></button>
       <div class="track" id="track"></div>
-      <button class="nav next" id="next" aria-label="Next machine">›</button>
+      <button class="nav next" id="next" aria-label="Next machine"><span aria-hidden="true"></span></button>
     </div>
     <div class="dots" id="dots"></div>
   </section>
@@ -473,7 +489,9 @@ body.space .bw-btn{box-shadow:0 5px 0 #4d7fa3}
   // Casino home: slide viewer of machines
   var MACH=[
     {id:'helen',name:'Helen\u2019s Jackpot',live:true,reels:['🍇','7\ufe0f\u20e3','🍒']},
-    {id:'ryan',name:'Ryan’s Galaxy',live:true,cls:'space',reels:['🚀','🪐','👽']},{id:'alex',name:'Alex'},{id:'skylar',name:'Skylar'},{id:'luke',name:'Luke'},{id:'persephone',name:'Persephone'}
+    {id:'ryan',name:'Ryan’s Galaxy',live:true,cls:'space',reels:['🚀','🪐','👽']},
+    {id:'alex',name:'Alex’s All-Star',live:true,cls:'sports',reels:['🍒','🏀','⚽']},
+    {id:'persephone',name:'Persephone’s Underworld',live:true,cls:'greek',reels:['🍒','⚡','🔱']}
   ];
   var homeEl=$('home'), mHelen=$('m-helen'), backBtn=$('back'), ttl=$('ttl'), track=$('track'), dotsEl=$('dots');
   var cards=track.children, dots=dotsEl.children;
@@ -502,7 +520,9 @@ body.space .bw-btn{box-shadow:0 5px 0 #4d7fa3}
   var HSYM=SYM.slice();
   var THEMES={
     helen:{name:'Helen’s Jackpot',sym:HSYM,cls:''},
-    ryan:{name:'Ryan’s Galaxy',sym:['🌙','⭐','🪐','🚀','👽','🛸'],cls:'space'}
+    ryan:{name:'Ryan’s Galaxy',sym:['🍒','⭐','🪐','🚀','👽','🛸'],cls:'space'},
+    alex:{name:'Alex’s All-Star',sym:['🍒','🏀','⚽','🏒','🏈','⚾'],cls:'sports'},
+    persephone:{name:'Persephone’s Underworld',sym:['🍒','⚡','🔱','🦉','🐍','🏛️'],cls:'greek'}
   };
   function theme(id){
     var t=THEMES[id]; SYM=t.sym; document.body.className=t.cls;
@@ -519,29 +539,13 @@ body.space .bw-btn{box-shadow:0 5px 0 #4d7fa3}
       theme(id);
       if(!busy){msg.className='msg'; msg.textContent='Pick a bet and spin.'}
     }else{
-      ttl.textContent='Casino'; document.body.className=''; requestAnimationFrame(active);
+      ttl.textContent='The Golden Aviator'; document.body.className=''; requestAnimationFrame(active);
     }
   }
   backBtn.addEventListener('click',function(){if(!busy)location.hash='home'});
   window.addEventListener('hashchange',route);
   route();
 
-  // Home-screen icon and manifest, generated at runtime so the page stays one file
-  try{
-    var cv=document.createElement('canvas');cv.width=cv.height=180;
-    var x=cv.getContext('2d');
-    x.fillStyle='#0f3b3a';x.fillRect(0,0,180,180);
-    x.strokeStyle='#c9a24b';x.lineWidth=8;x.strokeRect(14,14,152,152);
-    x.fillStyle='#e8cf8c';x.font='italic bold 110px Georgia,serif';x.textAlign='center';x.textBaseline='middle';
-    x.fillText('7',90,98);
-    var url=cv.toDataURL('image/png');
-    $('touchicon').href=url;
-    var m={name:'Helen’s Jackpot',short_name:'Helen’s Jackpot',display:'standalone',background_color:'#0a2827',theme_color:'#0f3b3a',
-      start_url:location.href.split('#')[0],icons:[{src:url,sizes:'180x180',type:'image/png'}]};
-    var l=document.createElement('link');l.rel='manifest';
-    l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
-    document.head.appendChild(l);
-  }catch(e){}
 })();
 </script>
 </body>
