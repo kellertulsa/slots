@@ -372,7 +372,7 @@ export class App implements OnInit, OnDestroy {
       this.reelsWin.set(true);
       this.message.set(`You won $${this.formatMoney(win)}!`);
       [523, 659, 784, 1047].forEach((frequency, index) =>
-        setTimeout(() => this.beep(frequency, 0.18, 'triangle', 0.16), index * 110),
+        setTimeout(() => this.beep(frequency, 0.18, 'triangle', 0.25), index * 110),
       );
       if (win >= totalWager * 25) {
         setTimeout(() => this.bigWin.set({
@@ -525,7 +525,7 @@ export class App implements OnInit, OnDestroy {
     this.credits.update((value) => value + amount);
     this.save();
     this.modalMessage.set(`$${amount.toLocaleString('en-US')} added. Close this to keep playing.`);
-    this.beep(784, 0.15, 'triangle', 0.16);
+    this.beep(784, 0.15, 'triangle', 0.25);
   }
 
   protected collectBigWin(): void {
@@ -553,15 +553,17 @@ export class App implements OnInit, OnDestroy {
     if (this.paylineTimer) clearTimeout(this.paylineTimer);
   }
 
-  private beep(frequency: number, duration: number, type: OscillatorType = 'square', volume = 0.12): void {
+  private beep(frequency: number, duration: number, type: OscillatorType = 'square', volume = 0.2): void {
     try {
-      if (!this.audio || this.audio.state === 'closed') this.audio = new AudioContext();
+      const AudioContextConstructor =
+        window.AudioContext ??
+        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextConstructor) throw new Error('Web Audio is not supported by this browser.');
+      if (!this.audio || this.audio.state === 'closed') this.audio = new AudioContextConstructor();
       const audio = this.audio;
       if (audio.state !== 'running') {
         void audio.resume()
-          .then(() => this.playTone(audio, frequency, duration, type, volume))
           .catch((error: unknown) => console.error('Unable to resume slot audio.', error));
-        return;
       }
       this.playTone(audio, frequency, duration, type, volume);
     } catch (error) {
