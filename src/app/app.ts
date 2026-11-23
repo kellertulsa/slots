@@ -372,7 +372,7 @@ export class App implements OnInit, OnDestroy {
       this.reelsWin.set(true);
       this.message.set(`You won $${this.formatMoney(win)}!`);
       [523, 659, 784, 1047].forEach((frequency, index) =>
-        setTimeout(() => this.beep(frequency, 0.18, 'triangle', 0.08), index * 110),
+        setTimeout(() => this.beep(frequency, 0.18, 'triangle', 0.16), index * 110),
       );
       if (win >= totalWager * 25) {
         setTimeout(() => this.bigWin.set({
@@ -525,7 +525,7 @@ export class App implements OnInit, OnDestroy {
     this.credits.update((value) => value + amount);
     this.save();
     this.modalMessage.set(`$${amount.toLocaleString('en-US')} added. Close this to keep playing.`);
-    this.beep(784, 0.15, 'triangle', 0.08);
+    this.beep(784, 0.15, 'triangle', 0.16);
   }
 
   protected collectBigWin(): void {
@@ -553,20 +553,39 @@ export class App implements OnInit, OnDestroy {
     if (this.paylineTimer) clearTimeout(this.paylineTimer);
   }
 
-  private beep(frequency: number, duration: number, type: OscillatorType = 'square', volume = 0.05): void {
+  private beep(frequency: number, duration: number, type: OscillatorType = 'square', volume = 0.12): void {
     try {
-      this.audio ??= new AudioContext();
-      if (this.audio.state === 'suspended') void this.audio.resume();
-      const oscillator = this.audio.createOscillator();
-      const gain = this.audio.createGain();
-      oscillator.type = type;
-      oscillator.frequency.value = frequency;
-      gain.gain.value = volume;
-      oscillator.connect(gain);
-      gain.connect(this.audio.destination);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.audio.currentTime + duration);
-      oscillator.start();
-      oscillator.stop(this.audio.currentTime + duration);
-    } catch {}
+      if (!this.audio || this.audio.state === 'closed') this.audio = new AudioContext();
+      const audio = this.audio;
+      if (audio.state !== 'running') {
+        void audio.resume()
+          .then(() => this.playTone(audio, frequency, duration, type, volume))
+          .catch((error: unknown) => console.error('Unable to resume slot audio.', error));
+        return;
+      }
+      this.playTone(audio, frequency, duration, type, volume);
+    } catch (error) {
+      console.error('Unable to play slot audio.', error);
+    }
+  }
+
+  private playTone(
+    audio: AudioContext,
+    frequency: number,
+    duration: number,
+    type: OscillatorType,
+    volume: number,
+  ): void {
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    const now = audio.currentTime;
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(volume, now);
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    oscillator.start(now);
+    oscillator.stop(now + duration);
   }
 }
