@@ -1,0 +1,23 @@
+<article
+  class="card"
+  [class.space]="machine.theme === 'space'"
+  [class.sports]="machine.theme === 'sports'"
+  [class.greek]="machine.theme === 'greek'"
+  [class.soon]="!machine.live"
+  [attr.role]="machine.live ? 'button' : null"
+  [attr.tabindex]="machine.live ? 0 : null"
+  [attr.aria-label]="machine.live ? 'Play ' + machine.name : null"
+  (click)="machine.live && open.emit(machine.id)"
+  (keydown.enter)="machine.live && open.emit(machine.id)">
+  <div
+    class="mini"
+    [class.five]="machine.reels.length === 5"
+    [style.grid-template-columns]="'repeat(' + machine.reels.length + ', minmax(0, 1fr))'"
+  >
+    @for (reel of machine.reels; track $index) {
+      <span>{{ reel }}</span>
+    }
+  </div>
+  <h2>{{ machine.name }}</h2>
+  <div class="pill" [class.off]="!machine.live">{{ machine.live ? 'Play' : 'Coming soon' }}</div>
+</article>

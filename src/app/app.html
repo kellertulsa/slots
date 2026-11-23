@@ -1,0 +1,105 @@
+<main class="app">
+  <header>
+    <div class="hl">
+      @if (!home()) {
+        <button class="back" type="button" aria-label="Back to the casino" (click)="goHome()">‹ Back</button>
+      }
+      <h1>{{ activeMachine()?.name ?? 'The Golden Aviator' }}</h1>
+    </div>
+    <div class="credits">
+      <b>${{ formatMoney(credits()) }}</b>
+      <button class="get" type="button" aria-label="Add money" (click)="openModal()">+</button>
+    </div>
+  </header>
+
+  @if (home()) {
+    <section class="home" aria-label="Slot machines">
+      <div class="viewer">
+        <button class="nav prev" type="button" aria-label="Previous slot games" (click)="scrollMachines(-1)">
+          <span aria-hidden="true"></span>
+        </button>
+        <div #machineTrack class="track" tabindex="0" aria-label="Slot games">
+          @for (machine of machines; track machine.id) {
+            <app-slot-card [machine]="machine" (open)="openMachine($event)" />
+          }
+        </div>
+        <button class="nav next" type="button" aria-label="Next slot games" (click)="scrollMachines(1)">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+    </section>
+  } @else {
+    @switch (activeMachine()?.id) {
+      @case ('helen') {
+        <app-helen-slot [state]="gameState()" (spin)="spin()" (betChange)="selectBet($event)" />
+      }
+      @case ('ryan') {
+        <app-ryan-slot [state]="gameState()" (spin)="spin()" (betChange)="selectBet($event)" />
+      }
+      @case ('alex') {
+        <app-alex-slot [state]="gameState()" (spin)="spin()" (betChange)="selectBet($event)" />
+      }
+      @case ('persephone') {
+        <app-persephone-slot [state]="gameState()" (spin)="spin()" (betChange)="selectBet($event)" />
+      }
+    }
+  }
+</main>
+
+@if (modalOpen()) {
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Ways to earn money">
+    <div class="sheet">
+      <p>{{ modalMessage() }}</p>
+
+      @if (!catchOpen()) {
+        <div class="rows">
+          <div class="row">
+            <div><b>Jewel Catch</b><small>Catch a jewel to reveal your prize, up to +$500</small></div>
+            <button type="button" [disabled]="!gameReady()" (click)="startCatchGame()">
+              {{ gameReady() ? 'Play' : formatCooldown(catchGameUntil) }}
+            </button>
+          </div>
+          <div class="row">
+            <div><b>Daily Bonus</b><small>+$1,000, once a day</small></div>
+            <button type="button" [disabled]="!dailyReady()" (click)="claimDaily()">
+              {{ dailyReady() ? 'Claim' : formatCooldown(catchDailyUntil) }}
+            </button>
+          </div>
+        </div>
+        <button class="close" type="button" (click)="closeModal()">Close</button>
+      } @else {
+        <div class="game">
+          <div class="field" (pointerdown)="setBucketLane($event)" (pointermove)="setBucketLane($event)">
+            @if (catchWon()) {
+              <div class="splash"><b>💎</b>You win!</div>
+            } @else {
+              <div class="lane"></div><div class="lane"></div><div class="lane"></div>
+              @for (jewel of jewels(); track $index) {
+                <div
+                  class="jewel"
+                  [style.left.%]="jewel.lane * 33.333 + 16.667"
+                  [style.top.%]="jewel.top">
+                  💎
+                </div>
+              }
+              <div class="bucket" [style.left.%]="bucketLane() * 33.333 + 16.667">🪣</div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (bigWin(); as win) {
+  <div class="bigwin" [class.jp]="win.jackpot" role="dialog" aria-label="Big win">
+    <div class="rays"></div>
+    <div class="bw-in">
+      <div class="bw-t">You win!</div>
+      <div class="bw-sub">{{ win.jackpot ? 'Jackpot' : win.multiplier >= 50 ? 'Huge win' : 'Big win' }}</div>
+      <b class="bw-amt">${{ win.win }}</b>
+      <div class="bw-x">{{ win.multiplier }}× your bet</div>
+      <button class="bw-btn" type="button" (click)="collectBigWin()">Collect</button>
+    </div>
+  </div>
+}

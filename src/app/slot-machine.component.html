@@ -1,0 +1,79 @@
+<div class="machine">
+  <section class="cabinet">
+    <div
+      class="reels"
+      [class.multi]="isMultiLine()"
+      [class.win]="state.reelsWin && (!hasCherryPayline() || hasLineWin())"
+      [class.flash-a]="state.activePayline !== null && state.activePayline % 2 === 1"
+      [class.flash-b]="state.activePayline !== null && state.activePayline % 2 === 0"
+      [style.grid-template-columns]="'repeat(' + machine.reelCount + ', minmax(0, 1fr))'"
+    >
+      @for (reel of state.reels; track $index; let reelIndex = $index) {
+        <div class="reel" [class.spin]="state.reelSpinning[reelIndex]">
+          @for (value of reel; track $index; let cellIndex = $index) {
+            <div
+              class="cell"
+              [class.mid]="!isMultiLine() && isPaylineRow(cellIndex)"
+              [class.win-cell]="state.winningCells[reelIndex][cellIndex]">
+              {{ symbol(value) }}
+            </div>
+          }
+        </div>
+      }
+    </div>
+    <p class="msg" [class.win]="state.reelsWin" aria-live="polite">{{ state.message }}</p>
+    @if (isMultiLine()) {
+      <div class="paid-lines-space">
+        @if (state.winningPaylines.length > 0) {
+          <div class="paid-lines" aria-live="polite">
+            <b>Paid lines:</b>
+            @for (line of state.winningPaylines; track line.number) {
+              <span [class.active]="state.activePayline === line.number">
+                #{{ line.number }} {{ symbol(line.symbol) }}×{{ line.matches }} +${{ formatMoney(line.winCents / 100) }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    }
+    @if (isMultiLine()) {
+      <div class="payline-note">
+        <span>{{ machine.paylines.length }} paylines · all {{ machine.reelCount }} symbols must match</span>
+      </div>
+    }
+    <div
+      class="pay"
+      [style.grid-template-columns]="
+        isMultiLine() ? 'repeat(3, minmax(0, 1fr))' :
+        machine.reelCount >= 5 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))'
+      "
+    >
+      @for (index of symbolIndexes; track index) {
+        <span>{{ payoutLabel(index) }}</span>
+      }
+    </div>
+  </section>
+
+  <div class="bets" role="group" [attr.aria-label]="isMultiLine() ? 'Bet per line' : 'Bet size'">
+    <label>{{ isMultiLine() ? 'Per line' : 'Bet' }}</label>
+    @for (value of state.bets; track value) {
+      <button
+        class="bet"
+        type="button"
+        [attr.aria-pressed]="state.bet === value"
+        (click)="betChange.emit(value)"
+      >
+        {{ betLabel(value) }}
+      </button>
+    }
+  </div>
+  @if (isMultiLine()) {
+    <div class="bet-total">
+      {{ machine.paylines.length }} lines × {{ betLabel(state.bet) }} = ${{ formatMoney(state.totalBet) }} / spin
+    </div>
+  }
+
+  <button class="spin-btn" type="button" [disabled]="state.busy" (click)="spin.emit()">
+    {{ state.credits < 1 ? 'ADD MONEY' : 'SPIN' }}
+  </button>
+</div>
