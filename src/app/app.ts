@@ -79,6 +79,7 @@ export class App implements OnInit, OnDestroy {
   private catchWinTimer: ReturnType<typeof setTimeout> | null = null;
   private cooldownTimer: ReturnType<typeof setInterval> | null = null;
   private paylineTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly audioGestureEvent = 'PointerEvent' in window ? 'pointerdown' : 'touchstart';
   protected catchDailyUntil = 0;
   protected catchGameUntil = 0;
   private audio: AudioContext | null = null;
@@ -91,11 +92,13 @@ export class App implements OnInit, OnDestroy {
 
     this.route();
     window.addEventListener('hashchange', this.route);
+    document.addEventListener(this.audioGestureEvent, this.activateAudio, true);
     if (this.credits() < 1) setTimeout(() => this.openModal(), 300);
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('hashchange', this.route);
+    document.removeEventListener(this.audioGestureEvent, this.activateAudio, true);
     this.stopTimers();
   }
 
@@ -553,14 +556,37 @@ export class App implements OnInit, OnDestroy {
     if (this.paylineTimer) clearTimeout(this.paylineTimer);
   }
 
+  private readonly activateAudio = (): void => {
+    try {
+      const audio = this.getAudioContext();
+      if (audio.state === 'running') return;
+
+      const resume = audio.resume();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      gain.gain.value = 0;
+      oscillator.connect(gain);
+      gain.connect(audio.destination);
+      oscillator.start();
+      oscillator.stop(audio.currentTime + 0.01);
+      void resume.catch((error: unknown) => console.error('Unable to resume slot audio.', error));
+    } catch (error) {
+      console.error('Unable to activate slot audio.', error);
+    }
+  };
+
+  private getAudioContext(): AudioContext {
+    const AudioContextConstructor =
+      window.AudioContext ??
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextConstructor) throw new Error('Web Audio is not supported by this browser.');
+    if (!this.audio || this.audio.state === 'closed') this.audio = new AudioContextConstructor();
+    return this.audio;
+  }
+
   private beep(frequency: number, duration: number, type: OscillatorType = 'square', volume = 0.2): void {
     try {
-      const AudioContextConstructor =
-        window.AudioContext ??
-        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AudioContextConstructor) throw new Error('Web Audio is not supported by this browser.');
-      if (!this.audio || this.audio.state === 'closed') this.audio = new AudioContextConstructor();
-      const audio = this.audio;
+      const audio = this.getAudioContext();
       if (audio.state !== 'running') {
         void audio.resume()
           .catch((error: unknown) => console.error('Unable to resume slot audio.', error));
