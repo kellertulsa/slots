@@ -48,6 +48,10 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "Slots.html",
+                "input": "."
               }
             ],
             "styles": [
