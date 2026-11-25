@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, isDevMode, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import packageJson from '../../package.json';
 import { SlotCardComponent } from './slot-card.component';
 import {
@@ -40,6 +40,8 @@ export class App implements OnInit, OnDestroy {
   protected readonly modalOpen = signal(false);
   protected readonly modalMessage = signal('Ways to keep playing.');
   private readonly cooldownNow = signal(Date.now());
+  private lastVersionCheck = 0;
+  private versionCheckInProgress = false;
   protected readonly catchOpen = signal(false);
   protected readonly catchWon = signal(false);
   protected readonly bucketLane = signal(1);
@@ -94,12 +96,14 @@ export class App implements OnInit, OnDestroy {
 
     this.route();
     window.addEventListener('hashchange', this.route);
+    document.addEventListener('visibilitychange', this.checkForLatestVersion);
     document.addEventListener(this.audioGestureEvent, this.activateAudio, true);
     if (this.credits() < 1) setTimeout(() => this.openModal(), 300);
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('hashchange', this.route);
+    document.removeEventListener('visibilitychange', this.checkForLatestVersion);
     document.removeEventListener(this.audioGestureEvent, this.activateAudio, true);
     this.stopTimers();
   }
@@ -113,6 +117,7 @@ export class App implements OnInit, OnDestroy {
       this.reels.set([]);
       this.reelSpinning.set([]);
       document.body.className = '';
+      void this.checkForLatestVersion();
       return;
     }
     this.home.set(false);
@@ -124,6 +129,51 @@ export class App implements OnInit, OnDestroy {
     this.winningPaylines.set([]);
     this.cancelPaylineSequence(machine);
     document.body.className = machine.theme;
+  };
+
+  private readonly checkForLatestVersion = async (): Promise<void> => {
+    if (
+      isDevMode() ||
+      document.visibilityState === 'hidden' ||
+      !this.home() ||
+      this.busy() ||
+      this.versionCheckInProgress ||
+      Date.now() - this.lastVersionCheck < 60_000
+    ) {
+      return;
+    }
+
+    this.lastVersionCheck = Date.now();
+    this.versionCheckInProgress = true;
+
+    try {
+      const versionUrl = new URL('version.json', document.baseURI);
+      versionUrl.searchParams.set('_', String(this.lastVersionCheck));
+      const response = await fetch(versionUrl, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Version check failed with HTTP ${response.status}`);
+
+      const latest: unknown = await response.json();
+      if (
+        typeof latest !== 'object' ||
+        latest === null ||
+        !('version' in latest) ||
+        typeof latest.version !== 'string'
+      ) {
+        throw new Error('Version check returned an invalid response');
+      }
+
+      if (latest.version !== this.appVersion) {
+        const latestUrl = new URL(window.location.href);
+        latestUrl.pathname = new URL('./', document.baseURI).pathname;
+        latestUrl.search = '';
+        latestUrl.searchParams.set('v', latest.version);
+        window.location.replace(latestUrl.href);
+      }
+    } catch (error) {
+      console.error('Unable to check for app updates.', error);
+    } finally {
+      this.versionCheckInProgress = false;
+    }
   };
 
   protected goHome(): void {

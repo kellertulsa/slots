@@ -1,11 +1,11 @@
 {
   "name": "the-golden-aviator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "build:pages": "ng build --base-href ./",
+    "build": "ng build && node scripts/write-version.mjs",
+    "build:pages": "ng build --base-href ./ && node scripts/write-version.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Updating The Golden Aviator</title>
+  </head>
+  <body>
+    <p>Opening the latest version of The Golden Aviator...</p>
+    <script>
+      const latestUrl = new URL('../../../', window.location.href);
+      latestUrl.searchParams.set('refresh', String(Date.now()));
+      window.location.replace(latestUrl.href);
+    </script>
+    <noscript><a href="../../../">Open the latest version</a></noscript>
+  </body>
+</html>

@@ -17,9 +17,15 @@
 - Keep the game usable with keyboard and assistive technology; preserve existing labels, button states, and live announcements when changing controls or results.
 - Keep changes focused. Do not add dependencies or introduce new architectural layers for small features.
 
+## Versioning and deployment
+
+- Before checking in application changes, increment the `version` in `package.json` using Semantic Versioning: patch for fixes, minor for backward-compatible features, or major for breaking changes. For example, run `npm version patch --no-git-tag-version`; this updates `package.json` and `package-lock.json`.
+- Do not edit the generated `version.json` manually. `npm run build` and `npm run build:pages` generate it from `package.json`, and the app uses it to detect deployed updates.
+- Run `npm run build:pages` before check-in to verify the Pages build and generated version metadata.
+
 ## Validation
 
 - Run `npm run build` for application changes.
 - Run `npm test` when changing or adding tests; the project currently configures Angular schematics to skip generating tests by default.
-https://kellertulsa.github.io/slots- For UI or styling changes, run the app with `npm start` and inspect it in a browser at phone, tablet/iPad, and desktop sizes. Check both portrait and landscape on phones and tablets, including representative viewports such as 320×568, 390×844, 430×932, 440×956 (iPhone Max portrait), 568×320, 844×390, 956×440 (iPhone Max landscape), 768×1024, 1024×768, 820×1180, and 1180×820.
+- For UI or styling changes, run the app with `npm start` and inspect it in a browser at phone, tablet/iPad, and desktop sizes. Check both portrait and landscape on phones and tablets, including representative viewports such as 320×568, 390×844, 430×932, 440×956 (iPhone Max portrait), 568×320, 844×390, 956×440 (iPhone Max landscape), 768×1024, 1024×768, 820×1180, and 1180×820.
 - Verify the home screen and each live slot-machine screen at those sizes. Exercise data-dense states such as multiple paid paylines while the win animation cycles, and inspect dialogs and big-win overlays. Look for horizontal overflow, visible unwanted scrollbars, clipped or overlapping content, unreadable text, inaccessible controls, layout issues in reels and bet controls, and machine theme colors leaking onto the home screen after navigation. Fix issues found and recheck affected viewports before considering the change complete.
