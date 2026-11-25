@@ -37,8 +37,13 @@
       </div>
     }
     @if (isMultiLine()) {
-      <div class="payline-note">
-        <span>{{ machine.paylines.length }} paylines · all {{ machine.reelCount }} symbols must match</span>
+      <div class="machine-summary">
+        <div class="payline-note">
+          <span>{{ machine.paylines.length }} paylines · all {{ machine.reelCount }} symbols must match</span>
+        </div>
+        <div class="bet-total">
+          {{ machine.paylines.length }} lines × {{ betLabel(state.bet) }} = ${{ formatMoney(state.totalBet) }} / spin
+        </div>
       </div>
     }
     <div
@@ -67,12 +72,6 @@
       </button>
     }
   </div>
-  @if (isMultiLine()) {
-    <div class="bet-total">
-      {{ machine.paylines.length }} lines × {{ betLabel(state.bet) }} = ${{ formatMoney(state.totalBet) }} / spin
-    </div>
-  }
-
   <button class="spin-btn" type="button" [disabled]="state.busy" (click)="spin.emit()">
     {{ state.credits < 1 ? 'ADD MONEY' : 'SPIN' }}
   </button>
