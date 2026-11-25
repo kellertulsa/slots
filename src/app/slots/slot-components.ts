@@ -19,6 +19,18 @@ export class HelenSlotComponent {
 
 @Component({
   imports: [SlotMachineComponent],
+  selector: 'app-joe-slot',
+  template: slotTemplate,
+})
+export class JoeSlotComponent {
+  @Input({ required: true }) state!: SlotGameState;
+  @Output() readonly spin = new EventEmitter<void>();
+  @Output() readonly betChange = new EventEmitter<number>();
+  protected readonly machine: SlotMachineDefinition = SLOT_MACHINES_BY_ID.joe;
+}
+
+@Component({
+  imports: [SlotMachineComponent],
   selector: 'app-ryan-slot',
   template: slotTemplate,
 })

@@ -9,6 +9,12 @@ export interface SlotMachineDefinition {
   betOptions: number[];
   symbols: string[];
   reels: string[];
+  stackProbability?: number;
+  progressive?: {
+    seedAmount: number;
+    contributionRate: number;
+    sequence: string[];
+  };
 }
 
 export const SLOT_MACHINES_BY_ID = {
@@ -23,6 +29,24 @@ export const SLOT_MACHINES_BY_ID = {
     betOptions: [1, 5, 10, 25],
     symbols: ['🍒', '🍋', '🍊', '🍇', '🍉', '7️⃣'],
     reels: ['🍇', '7️⃣', '🍒'],
+  },
+  joe: {
+    id: 'joe',
+    name: 'Joe’s Bingo Hall',
+    live: true,
+    theme: 'bingo',
+    reelCount: 5,
+    rowCount: 3,
+    paylines: [[1, 1, 1, 1, 1]],
+    betOptions: [100],
+    symbols: ['🍒', 'B', 'I', 'N', 'G', 'O'],
+    reels: ['B', 'I', 'N', 'G', 'O'],
+    stackProbability: 0.7,
+    progressive: {
+      seedAmount: 10_000,
+      contributionRate: 0.01,
+      sequence: ['B', 'I', 'N', 'G', 'O'],
+    },
   },
   ryan: {
     id: 'ryan',

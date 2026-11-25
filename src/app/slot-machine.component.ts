@@ -20,6 +20,7 @@ export interface SlotGameState {
   bets: number[];
   bet: number;
   totalBet: number;
+  progressiveJackpot: number;
   busy: boolean;
   credits: number;
 }
@@ -40,10 +41,6 @@ export class SlotMachineComponent {
 
   protected symbol(index: number): string {
     return this.machine.symbols[index];
-  }
-
-  protected symbolLine(index: number): string {
-    return this.symbol(index).repeat(this.machine.reelCount);
   }
 
   protected isMultiLine(): boolean {
@@ -71,8 +68,7 @@ export class SlotMachineComponent {
       const count = this.machine.reelCount >= 5 ? 3 : 2;
       return `Any ${count} ${this.symbol(index)} 2×`;
     }
-    if (!this.isMultiLine()) return `${this.symbolLine(index)} ${this.payout(index)}×`;
-    const reelMultiplier = this.machine.reelCount >= 5 ? 5 : 1;
+    const reelMultiplier = this.isMultiLine() && this.machine.reelCount >= 5 ? 5 : 1;
     return `${this.symbol(index)} ${this.payout(index) * reelMultiplier}×`;
   }
 

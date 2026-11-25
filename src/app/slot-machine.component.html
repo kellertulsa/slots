@@ -15,13 +15,36 @@
               class="cell"
               [class.mid]="!isMultiLine() && isPaylineRow(cellIndex)"
               [class.win-cell]="state.winningCells[reelIndex][cellIndex]">
-              {{ symbol(value) }}
+              @if (machine.theme === 'bingo' && value > 0) {
+                <span
+                  class="bingo-ball"
+                  [class.bingo-ball-b]="value === 1"
+                  [class.bingo-ball-i]="value === 2"
+                  [class.bingo-ball-n]="value === 3"
+                  [class.bingo-ball-g]="value === 4"
+                  [class.bingo-ball-o]="value === 5"
+                >
+                  {{ symbol(value) }}
+                </span>
+              } @else {
+                {{ symbol(value) }}
+              }
             </div>
           }
         </div>
       }
     </div>
-    <p class="msg" [class.win]="state.reelsWin" aria-live="polite">{{ state.message }}</p>
+    @if (!machine.progressive || state.message) {
+      <p class="msg" [class.win]="state.reelsWin" aria-live="polite">{{ state.message }}</p>
+    }
+    @if (machine.progressive) {
+      <div class="jackpot-meter" aria-label="Progressive jackpot" aria-live="polite">
+        <span>PROGRESSIVE</span>
+        <strong>
+          ${{ state.progressiveJackpot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+        </strong>
+      </div>
+    }
     @if (isMultiLine()) {
       <div class="paid-lines-space">
         @if (state.winningPaylines.length > 0) {
@@ -36,16 +59,19 @@
         }
       </div>
     }
-    @if (isMultiLine()) {
-      <div class="machine-summary">
-        <div class="payline-note">
-          <span>{{ machine.paylines.length }} paylines · all {{ machine.reelCount }} symbols must match</span>
-        </div>
+    <div class="machine-summary">
+      <div class="payline-note">
+        <span>
+          {{ machine.paylines.length }} {{ machine.paylines.length === 1 ? 'payline' : 'paylines' }}
+          · all {{ machine.reelCount }} symbols must match
+        </span>
+      </div>
+      @if (isMultiLine()) {
         <div class="bet-total">
           {{ machine.paylines.length }} lines × {{ betLabel(state.bet) }} = ${{ formatMoney(state.totalBet) }} / spin
         </div>
-      </div>
-    }
+      }
+    </div>
     <div
       class="pay"
       [style.grid-template-columns]="
@@ -54,24 +80,44 @@
       "
     >
       @for (index of symbolIndexes; track index) {
-        <span>{{ payoutLabel(index) }}</span>
+        <span>
+          @if (machine.theme === 'bingo' && index > 0) {
+            <span
+              class="bingo-ball"
+              [class.bingo-ball-b]="index === 1"
+              [class.bingo-ball-i]="index === 2"
+              [class.bingo-ball-n]="index === 3"
+              [class.bingo-ball-g]="index === 4"
+              [class.bingo-ball-o]="index === 5"
+            >
+              {{ symbol(index) }}
+            </span>
+            {{ payout(index) }}×
+          } @else {
+            {{ payoutLabel(index) }}
+          }
+        </span>
       }
     </div>
   </section>
 
-  <div class="bets" role="group" [attr.aria-label]="isMultiLine() ? 'Bet per line' : 'Bet size'">
-    <label>{{ isMultiLine() ? 'Per line' : 'Bet' }}</label>
-    @for (value of state.bets; track value) {
-      <button
-        class="bet"
-        type="button"
-        [attr.aria-pressed]="state.bet === value"
-        (click)="betChange.emit(value)"
-      >
-        {{ betLabel(value) }}
-      </button>
-    }
-  </div>
+  @if (state.bets.length > 1) {
+    <div class="bets" role="group" [attr.aria-label]="isMultiLine() ? 'Bet per line' : 'Bet size'">
+      <label>{{ isMultiLine() ? 'Per line' : 'Bet' }}</label>
+      @for (value of state.bets; track value) {
+        <button
+          class="bet"
+          type="button"
+          [attr.aria-pressed]="state.bet === value"
+          (click)="betChange.emit(value)"
+        >
+          {{ betLabel(value) }}
+        </button>
+      }
+    </div>
+  } @else {
+    <p class="fixed-bet">Bet {{ betLabel(state.bet) }} per spin</p>
+  }
   <button class="spin-btn" type="button" [disabled]="state.busy" (click)="spin.emit()">
     {{ state.credits < 1 ? 'ADD MONEY' : 'SPIN' }}
   </button>

@@ -33,6 +33,9 @@
       @case ('helen') {
         <app-helen-slot [state]="gameState()" (spin)="spin()" (betChange)="selectBet($event)" />
       }
+      @case ('joe') {
+        <app-joe-slot [state]="gameState()" (spin)="spin()" (betChange)="selectBet($event)" />
+      }
       @case ('ryan') {
         <app-ryan-slot [state]="gameState()" (spin)="spin()" (betChange)="selectBet($event)" />
       }
@@ -98,9 +101,11 @@
   <div class="bigwin" [class.jp]="win.jackpot" role="dialog" aria-label="Big win">
     <div class="rays"></div>
     <div class="bw-in">
-      <div class="bw-t">You win!</div>
-      <div class="bw-sub">{{ win.jackpot ? 'Jackpot' : win.multiplier >= 50 ? 'Huge win' : 'Big win' }}</div>
-      <b class="bw-amt">${{ win.win }}</b>
+      <div class="bw-t">{{ win.title }}</div>
+      <div class="bw-sub">
+        {{ win.progressive ? 'Progressive jackpot' : win.jackpot ? 'Jackpot' : win.multiplier >= 50 ? 'Huge win' : 'Big win' }}
+      </div>
+      <b class="bw-amt">${{ formatMoney(win.win) }}</b>
       <div class="bw-x">{{ win.multiplier }}× your bet</div>
       <button class="bw-btn" type="button" (click)="collectBigWin()">Collect</button>
     </div>

@@ -4,16 +4,22 @@ import { SlotCardComponent } from './slot-card.component';
 import {
   AlexSlotComponent,
   HelenSlotComponent,
+  JoeSlotComponent,
   PersephoneSlotComponent,
   RyanSlotComponent,
 } from './slots/slot-components';
 import { SlotGameState, WinningPayline } from './slot-machine.component';
-import { SLOT_MACHINES, SlotMachineDefinition } from './slot-machine.model';
+import { SLOT_MACHINES, SLOT_MACHINES_BY_ID, SlotMachineDefinition } from './slot-machine.model';
+
+const PROGRESSIVE_UNITS_PER_CENT = 100;
+const PROGRESSIVE_UNITS_PER_DOLLAR = 100 * PROGRESSIVE_UNITS_PER_CENT;
+const PROGRESSIVE_JACKPOT_STORAGE_KEY = 'brass.joe.progressive';
 
 @Component({
   imports: [
     SlotCardComponent,
     HelenSlotComponent,
+    JoeSlotComponent,
     RyanSlotComponent,
     AlexSlotComponent,
     PersephoneSlotComponent,
@@ -50,10 +56,19 @@ export class App implements OnInit, OnDestroy {
     { lane: 1, top: -12, value: 80, catching: false, delay: 1000 },
     { lane: 2, top: -12, value: 200, catching: false, delay: 2000 },
   ]);
-  protected readonly bigWin = signal<{ win: number; multiplier: number; jackpot: boolean } | null>(null);
+  protected readonly bigWin = signal<{
+    win: number;
+    multiplier: number;
+    jackpot: boolean;
+    progressive: boolean;
+    title: string;
+  } | null>(null);
   protected readonly bigWinAmount = signal(0);
   protected readonly machines = SLOT_MACHINES;
   protected readonly appVersion = packageJson.version;
+  private readonly progressiveJackpotUnits = signal(
+    Math.round((SLOT_MACHINES_BY_ID.joe.progressive?.seedAmount ?? 0) * PROGRESSIVE_UNITS_PER_DOLLAR),
+  );
 
   protected gameState(): SlotGameState {
     const machine = this.activeMachine();
@@ -70,6 +85,7 @@ export class App implements OnInit, OnDestroy {
       totalBet: machine ? this.wagerCents(machine, this.bet()) / 100 : this.bet(),
       busy: this.busy(),
       credits: this.credits(),
+      progressiveJackpot: this.progressiveJackpotUnits() / PROGRESSIVE_UNITS_PER_DOLLAR,
     };
   }
 
@@ -95,6 +111,7 @@ export class App implements OnInit, OnDestroy {
     } catch {}
 
     this.route();
+    this.loadProgressiveJackpot();
     window.addEventListener('hashchange', this.route);
     document.addEventListener('visibilitychange', this.checkForLatestVersion);
     document.addEventListener(this.audioGestureEvent, this.activateAudio, true);
@@ -122,6 +139,7 @@ export class App implements OnInit, OnDestroy {
     }
     this.home.set(false);
     this.activeMachine.set(machine);
+    if ('progressive' in machine) this.message.set('');
     if (!machine.betOptions.includes(this.bet())) this.bet.set(machine.betOptions[0]);
     this.drawInitialReels(machine);
     this.reelSpinning.set(Array.from({ length: machine.reelCount }, () => false));
@@ -206,9 +224,15 @@ export class App implements OnInit, OnDestroy {
   }
 
   private drawInitialReels(machine: SlotMachineDefinition): void {
-    this.reels.set(Array.from({ length: machine.reelCount }, () =>
-      Array.from({ length: machine.rowCount }, () => this.randomSymbol()),
-    ));
+    this.reels.set(Array.from({ length: machine.reelCount }, () => this.randomReel(machine)));
+  }
+
+  private randomReel(machine: SlotMachineDefinition): number[] {
+    if (machine.stackProbability && Math.random() < machine.stackProbability) {
+      const symbol = this.randomSymbol();
+      return Array.from({ length: machine.rowCount }, () => symbol);
+    }
+    return Array.from({ length: machine.rowCount }, () => this.randomSymbol());
   }
 
   private randomSymbol(): number {
@@ -294,6 +318,14 @@ export class App implements OnInit, OnDestroy {
 
     const wagerCents = this.wagerCents(machine, this.bet());
     this.credits.update((value) => (Math.round(value * 100) - wagerCents) / 100);
+    const progressive = SLOT_MACHINES_BY_ID.joe.progressive;
+    if (progressive) {
+      const contributionUnits = Math.round(
+        wagerCents * PROGRESSIVE_UNITS_PER_CENT * progressive.contributionRate,
+      );
+      this.progressiveJackpotUnits.update((value) => value + contributionUnits);
+      this.saveProgressiveJackpot();
+    }
     this.busy.set(true);
     this.reelsWin.set(false);
     this.winningCells.set(this.emptyWinningCells(machine));
@@ -303,9 +335,7 @@ export class App implements OnInit, OnDestroy {
     this.message.set('Spinning…');
     this.beep(220, 0.08);
 
-    let result = Array.from({ length: machine.reelCount }, () =>
-      Array.from({ length: machine.rowCount }, () => this.randomSymbol()),
-    );
+    let result = Array.from({ length: machine.reelCount }, () => this.randomReel(machine));
     try {
       if (!localStorage.getItem('brass.demo1')) {
         localStorage.setItem('brass.demo1', '1');
@@ -349,11 +379,19 @@ export class App implements OnInit, OnDestroy {
     const winningPaylines: WinningPayline[] = [];
     const lineBetCents = Math.round(this.bet() * 100);
     let winCents = 0;
+    let isProgressiveWin = false;
+    let isBingoLetterWin = false;
     if (machine.paylines.length === 1) {
       const centerRow = Math.floor(machine.rowCount / 2);
       const line = result.map((reel) => reel[centerRow]);
       const cherries = line.filter((value) => value === 0).length;
-      if (machine.reelCount >= 5 && cherries >= 3) {
+      const sequence = machine.progressive?.sequence.map((symbol) => machine.symbols.indexOf(symbol));
+      if (sequence?.length === line.length && sequence.every((symbol, index) => line[index] === symbol)) {
+        winCents = Math.round(this.progressiveJackpotUnits() / PROGRESSIVE_UNITS_PER_CENT);
+        isProgressiveWin = true;
+        isBingoLetterWin = true;
+        line.forEach((_, reelIndex) => (winningCells[reelIndex][centerRow] = true));
+      } else if (machine.reelCount >= 5 && cherries >= 3) {
         winCents = lineBetCents * 2;
         line.forEach((value, reelIndex) => {
           if (value === 0) winningCells[reelIndex][centerRow] = true;
@@ -365,6 +403,7 @@ export class App implements OnInit, OnDestroy {
         });
       } else if (line.length > 0 && line[0] !== 0 && line.every((value) => value === line[0])) {
         winCents = lineBetCents * this.payouts[line[0]];
+        isBingoLetterWin = Boolean(machine.progressive);
         line.forEach((_, reelIndex) => (winningCells[reelIndex][centerRow] = true));
       }
     } else {
@@ -416,6 +455,12 @@ export class App implements OnInit, OnDestroy {
     }
     this.winningCells.set(winningCells);
     this.winningPaylines.set(winningPaylines);
+    if (isProgressiveWin && machine.progressive) {
+      this.progressiveJackpotUnits.set(
+        Math.round(machine.progressive.seedAmount * PROGRESSIVE_UNITS_PER_DOLLAR),
+      );
+      this.saveProgressiveJackpot();
+    }
     if (machine.paylines.length > 1 && winningPaylines.length > 0) {
       this.showNextPayline(machine, winningPaylines, 0);
     }
@@ -429,11 +474,13 @@ export class App implements OnInit, OnDestroy {
       [523, 659, 784, 1047].forEach((frequency, index) =>
         setTimeout(() => this.beep(frequency, 0.18, 'triangle', 0.25), index * 110),
       );
-      if (win >= totalWager * 25) {
+      if (isBingoLetterWin || win >= totalWager * 25) {
         setTimeout(() => this.bigWin.set({
           win,
           multiplier: Math.round(win / totalWager),
-          jackpot: win >= totalWager * 100,
+          jackpot: isProgressiveWin || (!machine.progressive && win >= totalWager * 100),
+          progressive: isProgressiveWin,
+          title: isBingoLetterWin ? 'BINGO!' : 'You win!',
         }), machine.paylines.length > 1 ? winningPaylines.length * 1000 + 600 : 600);
       }
     } else {
@@ -598,6 +645,36 @@ export class App implements OnInit, OnDestroy {
     try {
       localStorage.setItem('brass.credits', String(this.credits()));
     } catch {}
+  }
+
+  private loadProgressiveJackpot(): void {
+    const seedAmount = SLOT_MACHINES_BY_ID.joe.progressive?.seedAmount ?? 0;
+    const seedCents = Math.round(seedAmount * 100);
+    const seedUnits = Math.round(seedAmount * PROGRESSIVE_UNITS_PER_DOLLAR);
+    try {
+      const savedAmount = localStorage.getItem(PROGRESSIVE_JACKPOT_STORAGE_KEY);
+      if (savedAmount === null) return;
+      const amount = Number(savedAmount);
+      if (!Number.isSafeInteger(amount) || amount < seedCents) {
+        throw new Error('Stored progressive jackpot amount is invalid.');
+      }
+      if (amount < seedUnits) {
+        this.progressiveJackpotUnits.set(amount * PROGRESSIVE_UNITS_PER_CENT);
+        this.saveProgressiveJackpot();
+        return;
+      }
+      this.progressiveJackpotUnits.set(amount);
+    } catch (error) {
+      console.error('Unable to load the progressive jackpot.', error);
+    }
+  }
+
+  private saveProgressiveJackpot(): void {
+    try {
+      localStorage.setItem(PROGRESSIVE_JACKPOT_STORAGE_KEY, String(this.progressiveJackpotUnits()));
+    } catch (error) {
+      console.error('Unable to save the progressive jackpot.', error);
+    }
   }
 
   private stopTimers(): void {

@@ -3,6 +3,7 @@
   [class.space]="machine.theme === 'space'"
   [class.sports]="machine.theme === 'sports'"
   [class.greek]="machine.theme === 'greek'"
+  [class.bingo]="machine.theme === 'bingo'"
   [class.soon]="!machine.live"
   [attr.role]="machine.live ? 'button' : null"
   [attr.tabindex]="machine.live ? 0 : null"
@@ -15,7 +16,22 @@
     [style.grid-template-columns]="'repeat(' + machine.reels.length + ', minmax(0, 1fr))'"
   >
     @for (reel of machine.reels; track $index) {
-      <span>{{ reel }}</span>
+      <span>
+        @if (machine.theme === 'bingo') {
+          <span
+            class="bingo-ball"
+            [class.bingo-ball-b]="reel === 'B'"
+            [class.bingo-ball-i]="reel === 'I'"
+            [class.bingo-ball-n]="reel === 'N'"
+            [class.bingo-ball-g]="reel === 'G'"
+            [class.bingo-ball-o]="reel === 'O'"
+          >
+            {{ reel }}
+          </span>
+        } @else {
+          {{ reel }}
+        }
+      </span>
     }
   </div>
   <h2>{{ machine.name }}</h2>

@@ -22,6 +22,15 @@ h1{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700
 .reel{min-width:0;background:var(--cream);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
 .cell{min-width:0;height:min(17vw,76px);display:flex;align-items:center;justify-content:center;font-size:min(11vw,52px);
   color:var(--ink);opacity:.38;filter:saturate(.6)}
+.bingo-ball{width:1.4em;height:1.4em;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.8);border-radius:50%;
+  color:#fff;font-size:.58em;font-weight:800;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.45);
+  background:var(--bingo-ball-background);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.55),inset 0 -4px 7px rgba(0,0,0,.25),0 2px 4px rgba(0,0,0,.28)}
+.bingo-ball-b{--bingo-ball-background:radial-gradient(circle at 30% 25%,#8bc4ff,#3479c5 48%,#174b8d)}
+.bingo-ball-i{--bingo-ball-background:radial-gradient(circle at 30% 25%,#ffb0ac,#d84c50 48%,#922d39)}
+.bingo-ball-n{--bingo-ball-background:radial-gradient(circle at 30% 25%,#fff0a0,#e2b643 48%,#a87819)}
+.bingo-ball-g{--bingo-ball-background:radial-gradient(circle at 30% 25%,#a5e8a9,#45975b 48%,#21613b)}
+.bingo-ball-o{--bingo-ball-background:radial-gradient(circle at 30% 25%,#ffd19d,#e77b26 48%,#a64a1d)}
 .cell.mid{opacity:1;filter:none;background:#fff8e6;border-block:2px solid var(--red)}
 .cell.win-cell{opacity:1;filter:none;background:#fff8e6;border-block:2px solid var(--red)}
 .reel.spin .cell{filter:blur(1.5px)}
@@ -46,9 +55,14 @@ h1{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700
 .pay{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;font-size:15px;color:var(--cream);opacity:.85;margin-top:10px;
   border-top:1px dashed var(--brass);padding-top:10px}
 .pay span{text-align:center}
+.pay .bingo-ball{display:inline-flex;width:1.4em;height:1.4em;margin-right:4px;vertical-align:middle;font-size:.9em}
+.jackpot-meter{display:flex;align-items:baseline;justify-content:center;gap:8px;margin-top:4px;color:var(--brass-lt);line-height:1}
+.jackpot-meter span{font-size:20px;font-weight:700;letter-spacing:.12em}
+.jackpot-meter strong{font-size:20px;font-variant-numeric:tabular-nums}
 .bet-total{text-align:center;font-size:15px;color:var(--brass-lt);margin-top:6px}
 .bets{display:flex;align-items:center;gap:8px}
 .bets label{font-size:17px;margin-right:auto}
+.fixed-bet{margin:0;text-align:center;color:var(--brass-lt);font-size:17px}
 .bet{appearance:none;border:2px solid var(--brass);background:transparent;color:var(--brass-lt);font:inherit;font-size:19px;
   width:58px;height:44px;border-radius:12px}
 .bet[aria-pressed=true]{background:var(--brass);color:var(--ink);font-weight:700}
@@ -150,6 +164,7 @@ h1{font-size:calc(var(--u)*26)}
   .pay{font-size:calc(var(--u)*19);gap:calc(var(--u)*8) calc(var(--u)*10)}
   .bets{grid-column:2;grid-row:2;align-self:end;display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*12)}
   .bets label{grid-column:1/-1;margin:0;font-size:calc(var(--u)*26)}
+  .fixed-bet{grid-column:2;grid-row:2;align-self:end;justify-self:center;font-size:calc(var(--u)*22)}
   .bet{width:100%;height:calc(var(--u)*80);font-size:calc(var(--u)*34);border-radius:calc(var(--u)*16)}
   .spin-btn{grid-column:2;grid-row:3;margin-top:0;height:calc(var(--u)*190);font-size:calc(var(--u)*48);border-radius:calc(var(--u)*30)}
   .modal{align-items:center}
@@ -184,6 +199,8 @@ h1{font-size:calc(var(--u)*26)}
 .card .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*8);padding:calc(var(--u)*8);background:var(--cab-deep);border-radius:calc(var(--u)*14)}
 .card .mini span{min-width:0;display:flex;align-items:center;justify-content:center;height:calc(var(--u)*90);font-size:calc(var(--u)*52);color:var(--ink);background:var(--cream);border-radius:calc(var(--u)*8)}
 .card .mini.five span{font-size:calc(var(--u)*24)}
+.card .mini.five span.bingo-ball{width:calc(var(--u)*50);height:calc(var(--u)*50);font-size:calc(var(--u)*28);color:#fff;
+  background:var(--bingo-ball-background);border:2px solid rgba(255,255,255,.8);border-radius:50%}
 .card h2{margin:0;font-family:Georgia,serif;font-style:italic;font-weight:700;font-size:calc(var(--u)*30);line-height:1.1;color:var(--brass-lt)}
 .pill{align-self:center;padding:calc(var(--u)*10) calc(var(--u)*28);border-radius:calc(var(--u)*22);background:var(--brass);color:var(--ink);font-weight:700;font-size:calc(var(--u)*18)}
 .pill.off{background:transparent;border:2px solid var(--brass);color:var(--cream);font-weight:400}
@@ -232,8 +249,12 @@ body.greek .spin-btn:active{box-shadow:0 1px 0 #792d49}
 body.greek .splash{background:radial-gradient(circle,#713c72,var(--cab-deep) 80%)}
 body.greek .bigwin{background:radial-gradient(circle at 50% 45%,#713c72 0,rgba(33,19,41,.98) 70%)}
 body.greek .bw-btn{box-shadow:0 5px 0 #89652f}
+body.bingo,.card.bingo{--cab:#173b67;--cab-deep:#0b2544;--brass:#e2b643;--brass-lt:#ffe18a;--cream:#fff7e6;--red:#c83c4a;--win:#a1df8b}
+body.bingo .bigwin{background:radial-gradient(circle at 50% 45%,#245991 0,rgba(11,37,68,.98) 70%)}
+body.bingo .spin-btn{box-shadow:0 6px 0 #852832}
+body.bingo .spin-btn:active{box-shadow:0 1px 0 #852832}
 
-app-helen-slot,app-ryan-slot,app-alex-slot,app-persephone-slot,app-slot-machine,app-slot-card{display:contents}
+app-helen-slot,app-joe-slot,app-ryan-slot,app-alex-slot,app-persephone-slot,app-slot-machine,app-slot-card{display:contents}
 .spin-btn{width:100%;min-width:0;margin-top:calc(var(--u)*12)}
 .row button,.close{min-height:44px}
 header{align-items:center;gap:10px}
@@ -322,4 +343,16 @@ h1{min-width:0;line-height:1}
   .machine-summary .payline-note{margin:0;text-align:left;font-size:clamp(11px,1.8vw,14px)}
   .machine-summary .bet-total{margin:0;white-space:nowrap;text-align:right;font-size:clamp(11px,1.8vw,14px)}
   .pay{margin-top:calc(var(--u)*6);padding-top:calc(var(--u)*6);font-size:clamp(12px,2vw,15px)}
+  .bigwin{padding:10px}
+  .bw-t{font-size:clamp(32px,8vh,52px)}
+  .bw-sub{font-size:clamp(16px,5vh,20px);margin:4px 0 6px}
+  .bw-amt{font-size:clamp(48px,16vh,72px)}
+  .bw-x{font-size:clamp(14px,4vh,18px);margin:4px 0 10px}
+  .bw-btn{height:48px;min-width:180px;font-size:18px;border-radius:14px}
+  .sheet{padding:12px;border-radius:16px}
+  .sheet p{min-height:0;margin-bottom:8px;font-size:16px;line-height:1.25}
+  .row{gap:8px;padding:6px 0;font-size:16px}
+  .row small{font-size:13px;line-height:1.2}
+  .row button{min-width:100px;height:44px;padding-inline:8px;font-size:16px;border-radius:10px}
+  .close{height:44px;margin-top:8px;font-size:16px}
 }
