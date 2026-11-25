@@ -44,6 +44,9 @@
       }
     }
   }
+  @if (home()) {
+    <small class="app-version" aria-label="App version">v{{ appVersion }}</small>
+  }
 </main>
 
 @if (modalOpen()) {

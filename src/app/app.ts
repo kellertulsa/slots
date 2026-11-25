@@ -1,4 +1,5 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
+import packageJson from '../../package.json';
 import { SlotCardComponent } from './slot-card.component';
 import {
   AlexSlotComponent,
@@ -50,6 +51,7 @@ export class App implements OnInit, OnDestroy {
   protected readonly bigWin = signal<{ win: number; multiplier: number; jackpot: boolean } | null>(null);
   protected readonly bigWinAmount = signal(0);
   protected readonly machines = SLOT_MACHINES;
+  protected readonly appVersion = packageJson.version;
 
   protected gameState(): SlotGameState {
     const machine = this.activeMachine();
