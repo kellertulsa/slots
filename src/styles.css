@@ -314,10 +314,12 @@ h1{min-width:0;line-height:1}
   .bet{min-height:44px;font-size:clamp(18px,4vw,22px)}
   .bets{gap:8px}
   .spin-btn{height:64px;font-size:clamp(22px,4.2vw,30px)}
+  .cabinet{padding:calc(var(--u)*14)}
+  .reels{gap:calc(var(--u)*10);padding:calc(var(--u)*10)}
   .cell{height:clamp(40px,11vh,64px);font-size:clamp(34px,8vh,52px)}
-  .msg{height:auto;min-height:24px;font-size:clamp(16px,3vw,20px)}
+  .msg{height:auto;min-height:24px;margin-top:calc(var(--u)*8);font-size:clamp(16px,3vw,20px)}
   .machine-summary{flex-direction:row;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
   .machine-summary .payline-note{margin:0;text-align:left;font-size:clamp(11px,1.8vw,14px)}
   .machine-summary .bet-total{margin:0;white-space:nowrap;text-align:right;font-size:clamp(11px,1.8vw,14px)}
-  .pay{font-size:clamp(12px,2vw,15px)}
+  .pay{margin-top:calc(var(--u)*6);padding-top:calc(var(--u)*6);font-size:clamp(12px,2vw,15px)}
 }
